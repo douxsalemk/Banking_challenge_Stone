@@ -12,7 +12,7 @@ defmodule BankingChallenge.Repo.Migrations.CreateAcount do
 
     create unique_index(:account, [:number_account])
 
-    # create constraint(:account, :value_must_be_greater_then_or_equal_to_zero, check: "value >= 0")
+    create constraint(:account, :balance_must_be_greater_then_or_equal_to_zero, check: "balance >= 0")
 
 
   end

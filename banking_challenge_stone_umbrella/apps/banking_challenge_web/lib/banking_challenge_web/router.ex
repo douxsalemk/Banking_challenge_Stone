@@ -9,17 +9,18 @@ defmodule BankingChallengeWeb.Router do
     pipe_through :api
 
     # Criar conta e verificar saldo
-    post "/account", AccountController, :create
+
+    post "/account/create", AccountController, :create
     get  "/account/saldo", AccountController, :show
 
     # Listar transaction
     get "/account/transaction_all", TransactionController, :all
 
     # Realizar transaction
-     post "/account/transaction_to", TransactionController, :send
+     post "/account/transaction_to/", TransactionController, :send
 
-   #Realisar saque
 
+     #Realisar saque
      post "/account/transaction", TransactionController, :withdraw
 
   end

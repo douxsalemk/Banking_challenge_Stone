@@ -9,17 +9,18 @@ defmodule BankingChallenge.Transactions.Schemas.Transaction do
   import Ecto.Changeset
 
 
-  @required_fields [:from_account, :amount, :account_id]
-  @optional_fields [:to_account]
+  @required_fields [:from_account_id, :amount]
+  @optional_fields [:to_account_id]
+
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "transaction" do
 
-    field :from_account, :integer, null: false
-    field :to_account, :integer
-    field :amount, :integer, null: false
+    field :amount, :integer
 
-    belongs_to :account, Account, primary_key: true
+    belongs_to :from_account, Account
+    belongs_to :to_account, Account
 
     timestamps()
 
@@ -32,6 +33,6 @@ defmodule BankingChallenge.Transactions.Schemas.Transaction do
     %__MODULE__{}
     |> cast(params, @required_fields ++ @optional_fields)
     |> validate_required(@required_fields)
-    #|> cast_assoc(:account_id, required: true, with: &Account.changeset/1)
+    |> check_constraint(:transaction, name: :amount_must_be_greater_then_or_equal)
   end
 end

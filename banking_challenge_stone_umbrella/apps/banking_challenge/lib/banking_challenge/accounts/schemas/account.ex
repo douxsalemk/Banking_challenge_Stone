@@ -24,11 +24,12 @@ defmodule BankingChallenge.Accounts.Schemas.Account do
   @doc """
   Generate a changeset for create a new transaction
   """
-  def changeset(params) when is_map(params) do
-    %__MODULE__{}
+  def changeset(struct \\ %__MODULE__{}, params) when is_map(params) do
+    struct
     |> cast(params, @required_fields ++ @optional_fields ++ [:balance])
-    # check_constraint(:value, name: :value_must_be_greater_then_or_equal
+    |> check_constraint(:account, name: :balance_must_be_greater_then_or_equal)
     |> validate_required(@required_fields)
+    |> validate_number(:balance, greater_than_or_equal_to: 0)
     |> unique_constraint(:number_account)  #?
   end
 
