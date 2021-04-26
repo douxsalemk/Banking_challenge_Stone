@@ -14,7 +14,14 @@ defmodule BankingChallengeWeb.MixProject do
       compilers: [:phoenix] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.html": :test,
+        "coveralls.post": :test
+      ]
     ]
   end
 
@@ -43,7 +50,8 @@ defmodule BankingChallengeWeb.MixProject do
       {:telemetry_poller, "~> 0.4"},
       {:banking_challenge, in_umbrella: true},
       {:jason, "~> 1.0"},
-      {:plug_cowboy, "~> 2.0"}
+      {:plug_cowboy, "~> 2.0"},
+      {:excoveralls, "~> 0.10", only: :test}
     ]
   end
 

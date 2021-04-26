@@ -13,25 +13,30 @@ defmodule BankingChallenge.Accounts.Account do
   """
   def create_new_account(params) when is_map(params) do
     Logger.info("Inserting new account")
+    IO.inspect(params)
 
-    with %{valid?: true} = changeset <- Account.changeset(params),
-         {:ok, Account} <- Repo.insert(changeset) do
-      Logger.info("Account successfully created. Number: #{params}")
-    else
-      %{valid?: false} = changeset ->
+    #with %{valid?: true} <- Account.changeset(params),
+    #    {:ok, account} <- Repo.insert(changeset) do
+#
+#
+    #    end
+
+    case  changeset = Account.changeset(params) do
+      %{valid?: true} ->
+        case  Repo.insert(changeset) do
+          {:ok, account} -> {:ok, account}
+          {error, account} -> {error, account}
+        end
+      %{valid?: false} ->
         Logger.error("Error while creating new account. Error: #{inspect(changeset)}")
         {:error, changeset}
     end
- #    rescue
- #      Ecto.ConstraintError ->
- #          Logger.error("Account already taken")
- #          {:error, :account_conflict}
   end
 
   @doc """
   Fetch a balance of an account from the database.
   """
-  def fetch(%{account_id: account_id} = params) when is_map(params) do
+  def fetch(%{"account_id" => account_id} = params) when is_map(params) do
     Logger.debug("Fetch account_balance by number_account: #{inspect(params)}")
 
 

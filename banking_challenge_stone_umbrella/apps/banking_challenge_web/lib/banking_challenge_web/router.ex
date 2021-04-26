@@ -11,17 +11,17 @@ defmodule BankingChallengeWeb.Router do
     # Criar conta e verificar saldo
 
     post "/account/create", AccountController, :create
-    get  "/account/saldo", AccountController, :show
+    get  "/account/saldo/:account_id", AccountController, :show
 
     # Listar transaction
-    get "/account/transaction_all", TransactionController, :all
+    get "/account/transaction_list", TransactionController, :all
 
     # Realizar transaction
-     post "/account/transaction_to/", TransactionController, :send
+     post "/account/transfer", TransactionController, :send
 
 
      #Realisar saque
-     post "/account/transaction", TransactionController, :withdraw
+     post "/account/withdraw", TransactionController, :withdraw
 
   end
 

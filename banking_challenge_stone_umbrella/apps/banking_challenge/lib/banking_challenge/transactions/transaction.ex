@@ -13,7 +13,7 @@ defmodule BankingChallenge.Transactions.Transaction do
   @doc """
   Transfer
   """
-  def send_to_other_account(%{from_account_id: from_account_id, to_account_id: to_account_id, amount: amount} = params) when is_integer(amount) do
+  def send_to_other_account(%{"from_account_id" => from_account_id, "to_account_id" => to_account_id, "amount" => amount} = params) when is_integer(amount) do
     Multi.new()
     |> Multi.run(:create_new_transaction, fn _repo, _changes -> create_new_transaction(params) end)
     |> Multi.run(:get_source_account, fn _repo, _changes -> get_account_by_id(from_account_id) end)
@@ -24,23 +24,37 @@ defmodule BankingChallenge.Transactions.Transaction do
     |> Multi.run(:update_target_acc_balance, fn _repo, %{get_target_account: account} ->
       update_target_acc_balance(account, amount)
     end)
-    |> Repo.transaction()
+    |> run_transaction1()
+  end
+
+  defp run_transaction1(multi) do
+    case Repo.transaction(multi) do
+      {:ok, %{create_new_transaction: transaction, update_source_acc_balance: source_acc, update_target_acc_balance: target_acc}} ->
+        {:ok, %{transaction: transaction, source_acc: source_acc, target_acc: target_acc}}
+      {:error, _result} -> {:error, _result}
+    end
   end
 
   @doc """
   withraw to self account
   """
-  def withdraw_to_self_account(%{from_account_id: from_account_id, amount: amount} = params) do
+  def withdraw_to_account(%{"from_account_id" => from_account_id, "amount" => amount} = params) do
     Multi.new()
     |> Multi.run(:get_source_account, fn _repo, _changes -> get_account_by_id(from_account_id) end)
     |> Multi.run(:update_source_acc_balance, fn _repo, %{get_source_account: account} ->
       update_source_acc_balance(account, amount)
     end )
     |> Multi.run(:create_new_transaction, fn _repo, _changes -> create_new_transaction(params) end)
-    |> Repo.transaction()
+    |> run_transaction2()
   end
 
-
+  defp run_transaction2(multi) do
+    case Repo.transaction(multi) do
+      {:ok, %{create_new_transaction: transaction, update_source_acc_balance: source_acc}} ->
+        {:ok, %{transaction: transaction, source_acc: source_acc}}
+      {:error, _result} -> {:error, _result}
+    end
+  end
   #  @doc """
   #  Fetch a balance of an account from the database.
   #  """
@@ -59,7 +73,6 @@ defmodule BankingChallenge.Transactions.Transaction do
     Repo.get(Account, account_id)
     |> case do
       %Account{} = account -> {:ok, account}
-      #{:ok, account} -> {:ok, account}
       nil -> {:error, :account_not_found}
     end
   end
@@ -70,13 +83,7 @@ defmodule BankingChallenge.Transactions.Transaction do
     |> update_account(account)
   end
 
-  defp withdraw_amount_in_balance(%Account{balance: balance}, amount) do
-    amount
-    |> handle_cast2(balance)
-  end
-
-  defp handle_cast2(amount, balance) when balance > amount, do: balance - amount
-
+  defp withdraw_amount_in_balance(%Account{balance: balance}, amount) when balance >= amount, do: balance - amount
 
   defp update_target_acc_balance(account, amount) do
     account
@@ -84,14 +91,8 @@ defmodule BankingChallenge.Transactions.Transaction do
     |> update_account(account)
   end
 
-  defp sum_amount_in_balance(%Account{balance: balance}, amount) do
-    amount
-    |> handle_cast1(balance)
-  end
+  defp sum_amount_in_balance(%Account{balance: balance}, amount), do: amount + balance
 
-  defp handle_cast1(amount, balance), do: amount + balance
-
-  defp update_account({:error, _reason} = error, _account), do: error
   defp update_account(amount, account) do
     params = %{balance: amount}
 
@@ -101,6 +102,7 @@ defmodule BankingChallenge.Transactions.Transaction do
 
   end
 
+#  defp update_account({:error, _reason} = error, _account), do: error
 
   @doc """
   create a new transaction

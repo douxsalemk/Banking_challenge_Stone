@@ -14,11 +14,17 @@ defmodule BankingChallengeWeb.TransactionController do
   Send the money to other account
   """
   def send(conn, params) do
-    #IO.inspect(params, label: "Send")
+    IO.inspect(params)
+    with {:ok, transaction} <- Transaction.send_to_other_account(params) do
+      IO.inspect(transaction)
+      conn
+       |> put_status(:ok)
+       |> render("transaction.json", transaction: transaction)
+    end
 
-    params
-    |> Transaction.send_to_other_account()
-    |> handle_response1(conn)
+    #params
+    #|> Transaction.send_to_other_account()
+    #|> handle_response(conn)
     #with {:ok, transaction} <- Transaction.send_to_other_account(params) do
     #  send_json(conn, 200, transaction)
     #else
@@ -42,11 +48,14 @@ defmodule BankingChallengeWeb.TransactionController do
   Withdraw money to self account
   """
   def withdraw(conn, params) do
-    #IO.inspect(params, label: "withdraw")
-
-    params
-    |> Transaction.withdraw_to_account()
-    |> handle_response2(conn)
+    with {:ok, transaction} <- Transaction.withdraw_to_account(params) do
+       conn
+       |> put_status(:ok)
+       |> render("transaction.json", transaction: transaction)
+    end
+    #params
+    #|> Transaction.withdraw_to_account()
+    #|> handle_response(conn)
 
     #with {:ok, transaction}  <- Transaction.withdraw_to_account(params) do
     #  send_json(conn, 200, transaction)
@@ -63,22 +72,11 @@ defmodule BankingChallengeWeb.TransactionController do
   #  |> send_resp(status, Jason.encode!(body))
   #end
 
-  defp handle_response1({:ok, transaction}, conn) do
-    conn
-    |> put_status(:ok)
-    |> render("transaction.json", transaction: transaction)
-  end
+  #defp handle_response({:ok, transaction}, conn) do
+  #  conn
+  #  |> put_status(:ok)
+  #  |> render("transaction.json", transaction: transaction)
+  #end
 
-  defp handle_response1({:error, _result} = error, _conn), do: error
-
-
-  defp handle_response2({:ok, transaction}, conn) do
-    conn
-    |> put_status(:ok)
-    |> render("withdraw.json", transaction: transaction)
-  end
-
-  defp handle_response2({:error, _result} = error, _conn), do: error
-
-
+  #defp handle_response({:error, _result} = error, _conn), do: error
 end
